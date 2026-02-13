@@ -64,8 +64,8 @@ export default function Home() {
     const ffmpeg = ffmpegRef.current;
     const duration = await getVideoDuration(videoFile);
 
-    // Target 7.5MB to ensure we stay under the 8MB limit
-    const targetSizeKb = 7.5 * 1024 * 8; 
+    // Target ~7.6MB to stay safely under Discord's 8MB limit
+    const targetSizeKb = 7.6 * 1024 * 8; 
     const calcBitrate = Math.floor(targetSizeKb / duration);
     const bitrateStr = `${calcBitrate}k`;
 
@@ -73,14 +73,13 @@ export default function Home() {
 
     setStatus(`Compressing at ${bitrateStr}...`);
     
-    // STABILITY FIX: Added -maxrate and -bufsize to prevent memory crashes
     await ffmpeg.exec([
       "-i", "input.mp4",
       "-b:v", bitrateStr,
       "-maxrate", bitrateStr,
-      "-bufsize", "2000k", 
+      "-bufsize", "1000k", // Strict buffer to prevent memory bounds errors
       "-c:v", "libx264",
-      "-preset", "superfast", 
+      "-preset", "ultrafast", // Least taxing on browser memory
       "-c:a", "aac",
       "-b:a", "128k",
       "output.mp4"
@@ -97,24 +96,15 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
       <div className="text-center mb-10 space-y-2">
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
-          Discord Video Compressor
-        </h1>
-        <p className="text-slate-500 text-lg">
-          Optimized <span className="text-indigo-600 font-bold">8MB targeting</span>
-        </p>
+        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Discord Video Compressor</h1>
+        <p className="text-slate-500 text-lg">Maximum quality <span className="text-indigo-600 font-bold">8MB targeting</span></p>
       </div>
 
-      <Card className="w-full max-w-xl shadow-xl bg-white">
+      <Card className="w-full max-w-xl shadow-xl bg-white border-slate-200">
         <CardContent className="p-8 flex flex-col items-center space-y-6">
           {!videoFile && (
-            <div className="w-full h-48 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center bg-slate-50 relative">
-              <input 
-                type="file" 
-                className="absolute inset-0 opacity-0 cursor-pointer"
-                onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
-                accept="video/*"
-              />
+            <div className="w-full h-48 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer relative">
+              <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => setVideoFile(e.target.files?.[0] || null)} accept="video/*" />
               <Upload className="w-10 h-10 text-slate-400 mb-2" />
               <p className="text-sm text-slate-500 font-medium">Click to Upload Video</p>
             </div>
@@ -122,10 +112,10 @@ export default function Home() {
 
           {videoFile && !isLoading && !outputUrl && (
             <div className="text-center w-full">
-              <div className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg text-sm mb-4 inline-block">
+              <div className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg text-sm mb-4 inline-block font-medium">
                 {videoFile.name} ({(videoFile.size / 1024 / 1024).toFixed(1)}MB)
               </div>
-              <Button onClick={compress} disabled={!loaded} className="w-full bg-indigo-600 text-white h-12">
+              <Button onClick={compress} disabled={!loaded} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 text-lg">
                 {loaded ? "Compress to 8MB" : "Loading Engine..."}
               </Button>
             </div>
@@ -148,11 +138,9 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold text-slate-800">Ready for Discord!</h3>
               <a href={outputUrl} download={`discord_${videoFile?.name}`}>
-                <Button className="w-full bg-green-600 text-white h-12">Download File</Button>
+                <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-12">Download File</Button>
               </a>
-              <button onClick={() => { setOutputUrl(null); setVideoFile(null); }} className="text-sm text-slate-400 hover:text-slate-600 underline mt-2">
-                Compress another video
-              </button>
+              <button onClick={() => { setOutputUrl(null); setVideoFile(null); }} className="text-sm text-slate-400 hover:text-slate-600 underline mt-2">Compress another video</button>
             </div>
           )}
         </CardContent>
