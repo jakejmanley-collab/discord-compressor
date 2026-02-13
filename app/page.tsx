@@ -21,7 +21,8 @@ export default function Home() {
   }, []);
 
   const load = async () => {
-    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
+    // FIX: Switched from unpkg to jsDelivr to resolve CORS 'Access-Control-Allow-Origin' issues
+    const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
     const ffmpeg = new FFmpeg();
     ffmpegRef.current = ffmpeg;
     
@@ -39,7 +40,7 @@ export default function Home() {
       setStatus("Ready to compress");
     } catch (error) {
       console.error("FFmpeg load error:", error);
-      setStatus("Error loading engine. Try refreshing.");
+      setStatus("CORS Error: Try refreshing or use a different browser.");
     }
   };
 
@@ -77,9 +78,9 @@ export default function Home() {
       "-i", "input.mp4",
       "-b:v", bitrateStr,
       "-maxrate", bitrateStr,
-      "-bufsize", "1000k", // Strict buffer to prevent memory bounds errors
+      "-bufsize", "1000k", 
       "-c:v", "libx264",
-      "-preset", "ultrafast", // Least taxing on browser memory
+      "-preset", "ultrafast", 
       "-c:a", "aac",
       "-b:a", "128k",
       "output.mp4"
