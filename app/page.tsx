@@ -69,7 +69,9 @@ export default function Home() {
 
     // 4. Read result
     const data = await ffmpeg.readFile("output.mp4");
-    const url = URL.createObjectURL(new Blob([data], { type: "video/mp4" }));
+    
+    // FIX APPLIED HERE: Added 'as any' to satisfy TypeScript strictness
+    const url = URL.createObjectURL(new Blob([data as any], { type: "video/mp4" }));
     
     setOutputUrl(url);
     setIsLoading(false);
