@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { Card, CardContent, Button } from "@/components/ui-elements";
-import { Upload, Download, Loader2 } from "lucide-react"; // Removed AlertCircle
+import { Upload, Download, Loader2 } from "lucide-react";
 
 export default function Home() {
   const [loaded, setLoaded] = useState(false);
@@ -13,16 +13,21 @@ export default function Home() {
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("Loading core engines...");
-  const ffmpegRef = useRef(new FFmpeg());
+  
+  // FIX: Initialize as NULL so it doesn't crash the server
+  const ffmpegRef = useRef<FFmpeg | null>(null);
 
-  // Load FFmpeg on Mount
+  // Load FFmpeg on Mount (Browser Only)
   useEffect(() => {
     load();
   }, []);
 
   const load = async () => {
     const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
-    const ffmpeg = ffmpegRef.current;
+    
+    // FIX: Only create the engine here, inside the browser
+    const ffmpeg = new FFmpeg();
+    ffmpegRef.current = ffmpeg;
     
     // Log progress
     ffmpeg.on("progress", ({ progress }) => {
@@ -39,7 +44,8 @@ export default function Home() {
   };
 
   const compress = async () => {
-    if (!videoFile) return;
+    if (!videoFile || !ffmpegRef.current) return;
+    
     setIsLoading(true);
     setStatus("Analyzing video...");
     
