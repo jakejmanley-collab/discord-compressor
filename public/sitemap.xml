@@ -1,33 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://discord-compressor-s7ed.vercel.app/</loc>
+    <loc>https://discordcompression.com/</loc>
     <lastmod>2026-02-13</lastmod>
-    <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://discord-compressor-s7ed.vercel.app/?format=MP4</loc>
-    <lastmod>2026-02-13</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://discordcompression.com/?format=MOV</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://discord-compressor-s7ed.vercel.app/?format=MOV</loc>
-    <lastmod>2026-02-13</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://discordcompression.com/?format=MKV</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://discord-compressor-s7ed.vercel.app/?format=MKV</loc>
-    <lastmod>2026-02-13</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://discord-compressor-s7ed.vercel.app/?format=AVI</loc>
-    <lastmod>2026-02-13</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://discordcompression.com/?format=MP4</loc>
     <priority>0.8</priority>
   </url>
 </urlset>
