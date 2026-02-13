@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { Card, CardContent, Button } from "@/components/ui-elements";
-import { Upload, Download, Loader2, AlertCircle } from "lucide-react";
+import { Upload, Download, Loader2 } from "lucide-react"; // Removed AlertCircle
 
 export default function Home() {
   const [loaded, setLoaded] = useState(false);
@@ -70,7 +70,7 @@ export default function Home() {
     // 4. Read result
     const data = await ffmpeg.readFile("output.mp4");
     
-    // FIX APPLIED HERE: Added 'as any' to satisfy TypeScript strictness
+    // TypeScript Fix: Cast data to 'any' to avoid strict type error
     const url = URL.createObjectURL(new Blob([data as any], { type: "video/mp4" }));
     
     setOutputUrl(url);
