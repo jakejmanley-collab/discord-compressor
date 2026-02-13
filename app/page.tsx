@@ -14,7 +14,6 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("Loading core engines...");
   
-  // Initialize as null to prevent server-side errors during build
   const ffmpegRef = useRef<FFmpeg | null>(null);
 
   useEffect(() => {
@@ -22,7 +21,6 @@ export default function Home() {
   }, []);
 
   const load = async () => {
-    // Using jsDelivr for better stability with FFmpeg wasm files
     const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
     const ffmpeg = new FFmpeg();
     ffmpegRef.current = ffmpeg;
@@ -44,32 +42,54 @@ export default function Home() {
     }
   };
 
+  // Helper to get video duration
+  const getVideoDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        resolve(video.duration);
+      };
+      video.src = URL.createObjectURL(file);
+    });
+  };
+
   const compress = async () => {
     if (!videoFile || !ffmpegRef.current) return;
     
     setIsLoading(true);
-    setStatus("Analyzing video...");
+    setStatus("Analyzing video duration...");
     
     const ffmpeg = ffmpegRef.current;
+    const duration = await getVideoDuration(videoFile);
+
+    // SMART BITRATE FORMULA
+    // Target: 7.5MB (leaving 0.5MB safety margin for audio/metadata)
+    // Formula: (TargetSizeInMegabits) / DurationInSeconds = Bitrate
+    // 7.5MB = 60 Megabits.
+    let targetBitrate = Math.floor(60 / duration); 
     
-    // Write file to virtual memory
+    // Safety caps: Don't go below 200kbps or above 8000kbps
+    if (targetBitrate < 0.2) targetBitrate = 0.2; 
+    if (targetBitrate > 8) targetBitrate = 8;
+
+    const bitrateStr = `${Math.floor(targetBitrate * 1000)}k`;
+    
+    setStatus(`Optimizing at ${bitrateStr}...`);
+    
     await ffmpeg.writeFile("input.mp4", await fetchFile(videoFile));
 
-    setStatus("Compressing to under 8MB...");
-    
-    // Command to target ~8MB (800k bitrate for video)
     await ffmpeg.exec([
       "-i", "input.mp4",
-      "-b:v", "800k", 
+      "-b:v", bitrateStr, 
       "-c:v", "libx264",
       "-preset", "faster",
+      "-crf", "28",
       "output.mp4"
     ]);
 
-    // Read processed file
     const data = await ffmpeg.readFile("output.mp4");
-    
-    // Use 'as any' to bypass TypeScript strict binary checks
     const url = URL.createObjectURL(new Blob([data as any], { type: "video/mp4" }));
     
     setOutputUrl(url);
