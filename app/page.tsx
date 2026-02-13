@@ -21,7 +21,7 @@ export default function Home() {
   }, []);
 
   const load = async () => {
-    // FIX: Switched from unpkg to jsDelivr to resolve CORS 'Access-Control-Allow-Origin' issues
+    // Using jsDelivr to resolve CORS 'Access-Control-Allow-Origin' issues seen with unpkg
     const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
     const ffmpeg = new FFmpeg();
     ffmpegRef.current = ffmpeg;
@@ -40,7 +40,7 @@ export default function Home() {
       setStatus("Ready to compress");
     } catch (error) {
       console.error("FFmpeg load error:", error);
-      setStatus("CORS Error: Try refreshing or use a different browser.");
+      setStatus("Engine error. Please refresh the page.");
     }
   };
 
@@ -87,7 +87,12 @@ export default function Home() {
     ]);
 
     const data = await ffmpeg.readFile("output.mp4");
-    const url = URL.createObjectURL(new Blob([data as any], { type: "video/mp4" }));
+    
+    // VERIFICATION LOG: Check the final file size in the browser console
+    const blob = new Blob([data as any], { type: "video/mp4" });
+    console.log(`Final File Size: ${(blob.size / 1024 / 1024).toFixed(2)} MB`);
+    
+    const url = URL.createObjectURL(blob);
     
     setOutputUrl(url);
     setIsLoading(false);
