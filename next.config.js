@@ -3,10 +3,17 @@ const nextConfig = {
   headers: async () => {
     return [
       {
-        source: '/(.*)', // This ensures headers apply to ALL pages
+        // This regex ensures the headers apply to every single page and asset
+        source: '/(.*)', 
         headers: [
-          { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
-          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
         ],
       },
     ];
