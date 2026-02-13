@@ -42,7 +42,6 @@ export default function Home() {
     }
   };
 
-  // Helper to get video duration
   const getVideoDuration = (file: File): Promise<number> => {
     return new Promise((resolve) => {
       const video = document.createElement('video');
@@ -59,33 +58,41 @@ export default function Home() {
     if (!videoFile || !ffmpegRef.current) return;
     
     setIsLoading(true);
-    setStatus("Analyzing video duration...");
+    setStatus("Analyzing video...");
     
     const ffmpeg = ffmpegRef.current;
     const duration = await getVideoDuration(videoFile);
 
-    // SMART BITRATE FORMULA
-    // Target: 7.5MB (leaving 0.5MB safety margin for audio/metadata)
-    // Formula: (TargetSizeInMegabits) / DurationInSeconds = Bitrate
-    // 7.5MB = 60 Megabits.
-    let targetBitrate = Math.floor(60 / duration); 
-    
-    // Safety caps: Don't go below 200kbps or above 8000kbps
-    if (targetBitrate < 0.2) targetBitrate = 0.2; 
-    if (targetBitrate > 8) targetBitrate = 8;
+    // TARGET: 7.8MB (62.4 Megabits) to be safe for Discord's 8MB limit
+    // Bitrate (kbps) = (Target Size in kb) / Duration
+    const targetSizeKb = 7.8 * 1024 * 8; 
+    const calcBitrate = Math.floor(targetSizeKb / duration);
+    const bitrateStr = `${calcBitrate}k`;
 
-    const bitrateStr = `${Math.floor(targetBitrate * 1000)}k`;
-    
-    setStatus(`Optimizing at ${bitrateStr}...`);
-    
     await ffmpeg.writeFile("input.mp4", await fetchFile(videoFile));
 
+    // PASS 1: Analyze
+    setStatus("Pass 1: Analyzing frames...");
     await ffmpeg.exec([
       "-i", "input.mp4",
-      "-b:v", bitrateStr, 
+      "-b:v", bitrateStr,
+      "-pass", "1",
+      "-an", // No audio for first pass
+      "-f", "mp4",
+      "-preset", "faster",
+      "dev/null"
+    ]);
+
+    // PASS 2: Encode
+    setStatus(`Pass 2: Encoding at ${bitrateStr}...`);
+    await ffmpeg.exec([
+      "-i", "input.mp4",
+      "-b:v", bitrateStr,
+      "-pass", "2",
       "-c:v", "libx264",
       "-preset", "faster",
-      "-crf", "28",
+      "-c:a", "aac",
+      "-b:a", "128k",
       "output.mp4"
     ]);
 
@@ -94,7 +101,7 @@ export default function Home() {
     
     setOutputUrl(url);
     setIsLoading(false);
-    setStatus("Done! Download below.");
+    setStatus("Done! High-quality file ready.");
   };
 
   return (
@@ -105,7 +112,7 @@ export default function Home() {
           Discord Video Compressor
         </h1>
         <p className="text-slate-500 text-lg">
-          Compress any clip to <span className="text-indigo-600 font-bold">under 8MB</span> without losing quality.
+          Maximum quality <span className="text-indigo-600 font-bold">8MB targeting</span> for Discord.
         </p>
       </div>
 
@@ -122,7 +129,7 @@ export default function Home() {
               />
               <Upload className="w-10 h-10 text-slate-400 mb-2" />
               <p className="text-sm text-slate-500 font-medium">Click to Upload Video</p>
-              <p className="text-xs text-slate-400 mt-1">MP4, MOV, MKV supported</p>
+              <p className="text-xs text-slate-400 mt-1">Files over 8MB recommended</p>
             </div>
           )}
 
@@ -136,7 +143,7 @@ export default function Home() {
                 disabled={!loaded}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 text-lg"
               >
-                {loaded ? "Compress Now" : "Loading Engine..."}
+                {loaded ? "Compress to 8MB" : "Loading Engine..."}
               </Button>
             </div>
           )}
@@ -149,14 +156,6 @@ export default function Home() {
               <div className="w-full bg-slate-200 rounded-full h-2.5">
                 <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
               </div>
-              
-              <div className="mt-6 p-4 bg-amber-50 border border-amber-100 rounded-lg text-left">
-                <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mb-1">Sponsored</p>
-                <p className="text-sm text-amber-900">
-                  <span className="font-bold">Lagging in game?</span> Try NordVPN to lower your ping and protect your IP.
-                  <a href="#" className="underline ml-1 font-bold">Get 60% Off →</a>
-                </p>
-              </div>
             </div>
           )}
 
@@ -165,10 +164,10 @@ export default function Home() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                 <Download className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-bold text-slate-800">Ready for Discord!</h3>
-              <p className="text-sm text-slate-500">Your video is now under 8MB.</p>
+              <h3 className="text-xl font-bold text-slate-800">Optimization Complete!</h3>
+              <p className="text-sm text-slate-500">File is now optimized for the 8MB limit.</p>
               
-              <a href={outputUrl} download={`compressed_${videoFile?.name}`}>
+              <a href={outputUrl} download={`discord_ready_${videoFile?.name}`}>
                 <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-12">
                   Download File
                 </Button>
@@ -188,13 +187,8 @@ export default function Home() {
       
       <footer className="mt-20 max-w-2xl text-center text-slate-400 text-sm space-y-4">
         <p>
-          CompressForDiscord.com processes all videos <strong>in your browser</strong>. 
-          No files are ever uploaded to a server, ensuring 100% privacy.
+          Privacy-First: Compression happens locally in your browser. 
         </p>
-        <div className="flex justify-center gap-4">
-          <a href="#" className="hover:text-slate-600">Privacy</a>
-          <a href="#" className="hover:text-slate-600">Terms</a>
-        </div>
       </footer>
     </main>
   );
