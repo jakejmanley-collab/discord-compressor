@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { Card, CardContent, Button } from "@/components/ui-elements";
 import { Upload, Download, Loader2 } from "lucide-react";
 
-export default function Home() {
+// Separate the tool into a component to use useSearchParams safely
+function CompressorTool() {
+  const searchParams = useSearchParams();
+  const format = searchParams.get("format")?.toUpperCase() || "Video";
+  
   const [loaded, setLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -21,7 +26,6 @@ export default function Home() {
   }, []);
 
   const load = async () => {
-    // Using jsDelivr to resolve CORS 'Access-Control-Allow-Origin' issues seen with unpkg
     const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
     const ffmpeg = new FFmpeg();
     ffmpegRef.current = ffmpeg;
@@ -40,7 +44,7 @@ export default function Home() {
       setStatus("Ready to compress");
     } catch (error) {
       console.error("FFmpeg load error:", error);
-      setStatus("Engine error. Please refresh the page.");
+      setStatus("Engine error. Please refresh.");
     }
   };
 
@@ -58,21 +62,17 @@ export default function Home() {
 
   const compress = async () => {
     if (!videoFile || !ffmpegRef.current) return;
-    
     setIsLoading(true);
-    setStatus("Analyzing video...");
+    setStatus("Analyzing...");
     
     const ffmpeg = ffmpegRef.current;
     const duration = await getVideoDuration(videoFile);
-
-    // Target ~7.6MB to stay safely under Discord's 8MB limit
     const targetSizeKb = 7.6 * 1024 * 8; 
     const calcBitrate = Math.floor(targetSizeKb / duration);
     const bitrateStr = `${calcBitrate}k`;
 
     await ffmpeg.writeFile("input.mp4", await fetchFile(videoFile));
-
-    setStatus(`Compressing at ${bitrateStr}...`);
+    setStatus(`Optimizing ${format}...`);
     
     await ffmpeg.exec([
       "-i", "input.mp4",
@@ -87,23 +87,23 @@ export default function Home() {
     ]);
 
     const data = await ffmpeg.readFile("output.mp4");
-    
-    // VERIFICATION LOG: Check the final file size in the browser console
     const blob = new Blob([data as any], { type: "video/mp4" });
-    console.log(`Final File Size: ${(blob.size / 1024 / 1024).toFixed(2)} MB`);
-    
     const url = URL.createObjectURL(blob);
     
     setOutputUrl(url);
     setIsLoading(false);
-    setStatus("Done! File ready.");
+    setStatus("Done!");
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+    <div className="w-full flex flex-col items-center">
       <div className="text-center mb-10 space-y-2">
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Discord Video Compressor</h1>
-        <p className="text-slate-500 text-lg">Maximum quality <span className="text-indigo-600 font-bold">8MB targeting</span></p>
+        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
+          Compress {format} for Discord
+        </h1>
+        <p className="text-slate-500 text-lg">
+          Get your {format} files <span className="text-indigo-600 font-bold">under 8MB</span> with maximum quality.
+        </p>
       </div>
 
       <Card className="w-full max-w-xl shadow-xl bg-white border-slate-200">
@@ -112,7 +112,7 @@ export default function Home() {
             <div className="w-full h-48 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer relative">
               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => setVideoFile(e.target.files?.[0] || null)} accept="video/*" />
               <Upload className="w-10 h-10 text-slate-400 mb-2" />
-              <p className="text-sm text-slate-500 font-medium">Click to Upload Video</p>
+              <p className="text-sm text-slate-500 font-medium">Click to Upload {format}</p>
             </div>
           )}
 
@@ -122,7 +122,7 @@ export default function Home() {
                 {videoFile.name} ({(videoFile.size / 1024 / 1024).toFixed(1)}MB)
               </div>
               <Button onClick={compress} disabled={!loaded} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 text-lg">
-                {loaded ? "Compress to 8MB" : "Loading Engine..."}
+                {loaded ? `Compress ${format}` : "Loading Engine..."}
               </Button>
             </div>
           )}
@@ -142,15 +142,29 @@ export default function Home() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                 <Download className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-bold text-slate-800">Ready for Discord!</h3>
+              <h3 className="text-xl font-bold text-slate-800">Optimization Complete!</h3>
               <a href={outputUrl} download={`discord_${videoFile?.name}`}>
                 <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-12">Download File</Button>
               </a>
-              <button onClick={() => { setOutputUrl(null); setVideoFile(null); }} className="text-sm text-slate-400 hover:text-slate-600 underline mt-2">Compress another video</button>
+              <button onClick={() => { setOutputUrl(null); setVideoFile(null); }} className="text-sm text-slate-400 hover:text-slate-600 underline mt-2">Compress another</button>
             </div>
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+      <Suspense fallback={<Loader2 className="animate-spin text-indigo-600" />}>
+        <CompressorTool />
+      </Suspense>
+      
+      <footer className="mt-20 max-w-2xl text-center text-slate-400 text-sm">
+        <p>Privacy-First: All {new Date().getFullYear()} processing happens locally in your browser.</p>
+      </footer>
     </main>
   );
 }
