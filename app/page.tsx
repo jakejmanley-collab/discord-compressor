@@ -21,7 +21,6 @@ export default function Home() {
   }, []);
 
   const load = async () => {
-    // We use a specific version to ensure all 3 files (js, wasm, worker) match
     const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
     const ffmpeg = new FFmpeg();
     ffmpegRef.current = ffmpeg;
@@ -34,7 +33,6 @@ export default function Home() {
       await ffmpeg.load({
         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
         wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-        // ADDED: Explicitly load the worker to fix ERR_FILE_NOT_FOUND
         workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, "text/javascript"),
       });
       setLoaded(true);
@@ -66,23 +64,23 @@ export default function Home() {
     const ffmpeg = ffmpegRef.current;
     const duration = await getVideoDuration(videoFile);
 
-    // Target slightly less than 8MB for a safety buffer
+    // Target 7.5MB to ensure we stay under the 8MB limit
     const targetSizeKb = 7.5 * 1024 * 8; 
     const calcBitrate = Math.floor(targetSizeKb / duration);
     const bitrateStr = `${calcBitrate}k`;
 
     await ffmpeg.writeFile("input.mp4", await fetchFile(videoFile));
 
-    // SINGLE PASS with strict buffer to prevent memory bounds error
-    setStatus(`Optimizing at ${bitrateStr}...`);
+    setStatus(`Compressing at ${bitrateStr}...`);
     
+    // STABILITY FIX: Added -maxrate and -bufsize to prevent memory crashes
     await ffmpeg.exec([
       "-i", "input.mp4",
       "-b:v", bitrateStr,
       "-maxrate", bitrateStr,
-      "-bufsize", "1500k", // Controls memory spikes
+      "-bufsize", "2000k", 
       "-c:v", "libx264",
-      "-preset", "veryfast", // Faster is more stable for browser memory
+      "-preset", "superfast", 
       "-c:a", "aac",
       "-b:a", "128k",
       "output.mp4"
@@ -93,24 +91,24 @@ export default function Home() {
     
     setOutputUrl(url);
     setIsLoading(false);
-    setStatus("Done! High-quality file ready.");
+    setStatus("Done! File ready.");
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans">
+    <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
       <div className="text-center mb-10 space-y-2">
         <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
           Discord Video Compressor
         </h1>
         <p className="text-slate-500 text-lg">
-          Maximum quality <span className="text-indigo-600 font-bold">8MB targeting</span> for Discord.
+          Optimized <span className="text-indigo-600 font-bold">8MB targeting</span>
         </p>
       </div>
 
-      <Card className="w-full max-w-xl shadow-xl bg-white border-slate-200">
+      <Card className="w-full max-w-xl shadow-xl bg-white">
         <CardContent className="p-8 flex flex-col items-center space-y-6">
           {!videoFile && (
-            <div className="w-full h-48 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer relative">
+            <div className="w-full h-48 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center bg-slate-50 relative">
               <input 
                 type="file" 
                 className="absolute inset-0 opacity-0 cursor-pointer"
@@ -124,10 +122,10 @@ export default function Home() {
 
           {videoFile && !isLoading && !outputUrl && (
             <div className="text-center w-full">
-              <div className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg text-sm mb-4 inline-block font-medium">
+              <div className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg text-sm mb-4 inline-block">
                 {videoFile.name} ({(videoFile.size / 1024 / 1024).toFixed(1)}MB)
               </div>
-              <Button onClick={compress} disabled={!loaded} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 text-lg">
+              <Button onClick={compress} disabled={!loaded} className="w-full bg-indigo-600 text-white h-12">
                 {loaded ? "Compress to 8MB" : "Loading Engine..."}
               </Button>
             </div>
@@ -148,9 +146,9 @@ export default function Home() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                 <Download className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-bold text-slate-800">Optimization Complete!</h3>
-              <a href={outputUrl} download={`discord_ready_${videoFile?.name}`}>
-                <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-12">Download File</Button>
+              <h3 className="text-xl font-bold text-slate-800">Ready for Discord!</h3>
+              <a href={outputUrl} download={`discord_${videoFile?.name}`}>
+                <Button className="w-full bg-green-600 text-white h-12">Download File</Button>
               </a>
               <button onClick={() => { setOutputUrl(null); setVideoFile(null); }} className="text-sm text-slate-400 hover:text-slate-600 underline mt-2">
                 Compress another video
