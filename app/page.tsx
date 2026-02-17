@@ -54,17 +54,21 @@ export default function Home() {
             ))}
           </div>
         </section>
-
-      </div>
-
-      {/* FOOTER */}
+{/* FOOTER */}
       <footer className="mt-16 py-8 text-center text-slate-400 text-sm border-t border-slate-200 w-full">
-        <p className="flex items-center justify-center gap-2">
+        <p className="flex items-center justify-center gap-2 mb-4">
           <ShieldCheck className="w-4 h-4" />
           All video processing is performed client-side. Your files never leave your device.
         </p>
-        <p className="mt-2">&copy; {new Date().getFullYear()} Discord Compression Tool.</p>
+        <div className="flex justify-center gap-6 mb-4">
+          <Link href="/privacy" className="hover:text-indigo-600 transition-colors">Privacy Policy</Link>
+          <Link href="/" className="hover:text-indigo-600 transition-colors">Contact</Link>
+        </div>
+        <p>&copy; {new Date().getFullYear()} Discord Compression Tool.</p>
       </footer>
+      </div>
+
+      
     </main>
   );
 }
