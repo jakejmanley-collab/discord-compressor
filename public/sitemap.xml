@@ -2,39 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://discordcompression.com/</loc>
-    <lastmod>2026-02-13</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://discordcompression.com/?format=MOV</loc>
+    <loc>https://discordcompression.com/mp4</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://discordcompression.com/?format=MKV</loc>
+    <loc>https://discordcompression.com/mov</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://discordcompression.com/?format=MP4</loc>
+    <loc>https://discordcompression.com/mkv</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://discordcompression.com/?format=AVI</loc>
+    <loc>https://discordcompression.com/avi</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://discordcompression.com/?format=WEBM</loc>
+    <loc>https://discordcompression.com/webm</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://discordcompression.com/?format=WMV</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://discordcompression.com/?format=FLV</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://discordcompression.com/?format=M4V</loc>
+    <loc>https://discordcompression.com/wmv</loc>
     <priority>0.8</priority>
   </url>
 </urlset>
