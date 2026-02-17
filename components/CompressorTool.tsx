@@ -5,6 +5,7 @@ import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { Card, CardContent, Button } from "@/components/ui-elements";
 import { Upload, Download, Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 export function CompressorTool({ format }: { format: string }) {
   const [loaded, setLoaded] = useState(false);
@@ -68,7 +69,7 @@ export function CompressorTool({ format }: { format: string }) {
     const calcBitrate = Math.floor(targetSizeKb / duration);
     
     // SMART RESOLUTION
-    let scaleFilter = [];
+    let scaleFilter: string[] = [];
     if (calcBitrate < 800) {
         scaleFilter = ["-vf", "scale=-2:480"];
         setStatus("optimizing resolution (480p) for max smoothness...");
