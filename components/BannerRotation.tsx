@@ -28,7 +28,7 @@ export function BannerRotator({ mode, affiliateLink, affiliateImage, slot }: Ban
   if (mode === "affiliate" && affiliateLink && affiliateImage) {
     return (
       <div className="w-full my-8 flex flex-col items-center">
-        <span className="text-[10px] text-slate-300 uppercase tracking-widest mb-2 font-bold">Sponsored Offer</span>
+        <span className="text-[10px] text-slate-300 uppercase tracking-widest mb-2 font-bold italic">Sponsored Offer</span>
         <a href={affiliateLink} target="_blank" rel="noopener noreferrer" className="hover:opacity-90 transition-opacity">
           <img 
             src={affiliateImage} 
@@ -42,7 +42,7 @@ export function BannerRotator({ mode, affiliateLink, affiliateImage, slot }: Ban
 
   if (mode === "adsense") {
     return (
-      <div className="w-full my-8 text-center">
+      <div className="w-full my-8 text-center min-h-[90px]">
         <ins
           className="adsbygoogle"
           style={{ display: "block" }}
