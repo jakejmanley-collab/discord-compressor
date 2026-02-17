@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CompressorTool } from "@/components/CompressorTool";
@@ -170,18 +169,6 @@ export default function FormatPage({ params }: Props) {
 
       <div className="w-full flex flex-col items-center max-w-5xl px-4">
         
-        {/* HERO IMAGE */}
-        <div className="relative w-full max-w-lg mx-auto mb-8">
-          <Image 
-            src="/og-image.png" 
-            alt={`Compress ${displayFormat} for Discord`}
-            width={1200} 
-            height={630} 
-            className="rounded-2xl shadow-2xl border border-slate-200"
-            priority
-          />
-        </div>
-
         {/* HEADER */}
         <div className="text-center mb-10 space-y-4">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
@@ -261,8 +248,13 @@ export default function FormatPage({ params }: Props) {
 
       </div>
       
-      <footer className="mt-10 py-8 text-center text-slate-400 text-sm border-t border-slate-200 w-full">
-        <p>&copy; {new Date().getFullYear()} Discord Compression Tool.</p>
+      {/* FOOTER */}
+      <footer className="mt-16 py-8 text-center text-slate-400 text-sm border-t border-slate-200 w-full">
+        <p className="flex items-center justify-center gap-2">
+          <ShieldCheck className="w-4 h-4" />
+          All video processing is performed client-side. Your files never leave your device.
+        </p>
+        <p className="mt-2">&copy; {new Date().getFullYear()} Discord Compression Tool.</p>
       </footer>
     </main>
   );
