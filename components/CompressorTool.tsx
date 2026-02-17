@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { Card, CardContent, Button } from "@/components/ui-elements";
-import { Upload, Download, Loader2, CheckCircle2, Clock, Trash2 } from "lucide-react";
+import { Upload, Download, Loader2, CheckCircle2, Clock, Trash2, DownloadCloud, Layers } from "lucide-react";
 
 type VideoJob = {
   file: File;
@@ -75,7 +75,6 @@ export function CompressorTool({ format }: { format: string }) {
     if (isProcessingQueue || !ffmpegRef.current) return;
     setIsProcessingQueue(true);
 
-    // We process sequentially to avoid crashing the browser's memory
     for (let i = 0; i < jobs.length; i++) {
       if (jobs[i].status !== "pending") continue;
 
@@ -112,66 +111,71 @@ export function CompressorTool({ format }: { format: string }) {
           idx === i ? { ...j, status: "completed", outputUrl: url, progress: 100 } : j
         ));
       } catch (err) {
-        console.error(err);
         setJobs(prev => prev.map((j, idx) => idx === i ? { ...j, status: "error" } : j));
       }
     }
-
     setIsProcessingQueue(false);
+  };
+
+  const downloadAll = () => {
+    const completedJobs = jobs.filter(j => j.status === "completed" && j.outputUrl);
+    completedJobs.forEach((job, index) => {
+      setTimeout(() => {
+        const link = document.createElement("a");
+        link.href = job.outputUrl!;
+        link.download = `discord_${job.file.name}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, index * 400); 
+    });
   };
 
   const removeJob = (index: number) => {
     setJobs(prev => prev.filter((_, i) => i !== index));
   };
 
+  const completedCount = jobs.filter(j => j.status === "completed").length;
+  const pendingCount = jobs.filter(j => j.status === "pending").length;
+
   return (
     <Card className="w-full max-w-2xl shadow-xl bg-white border-slate-200 overflow-hidden">
       <CardContent className="p-6">
         
-        {/* ENHANCED UPLOAD AREA */}
+        {/* UPLOAD AREA */}
         <div className="w-full h-40 border-2 border-dashed border-indigo-200 rounded-2xl flex flex-col items-center justify-center bg-indigo-50/30 hover:bg-indigo-50 transition-all cursor-pointer relative mb-6 group">
           <input 
             type="file" 
-            multiple // <--- THIS ALLOWS BULK SELECT
+            multiple // IMPORTANT: Allows multiple selection
             className="absolute inset-0 opacity-0 cursor-pointer" 
             onChange={handleFileChange} 
             accept="video/*" 
           />
           <div className="p-3 bg-white rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform">
-            <Upload className="w-6 h-6 text-indigo-600" />
+            <Layers className="w-6 h-6 text-indigo-600" />
           </div>
           <p className="text-sm text-slate-600 font-semibold text-center px-4">
-            Select or Drag Multiple Videos
+            Select or Drag <span className="text-indigo-600 font-bold">Multiple Videos</span>
             <br/><span className="text-[10px] text-indigo-500 font-bold uppercase tracking-widest mt-1 inline-block">Bulk Mode Enabled</span>
           </p>
         </div>
 
-        {/* DYNAMIC QUEUE LIST */}
+        {/* QUEUE LIST */}
         <div className="space-y-3 max-h-72 overflow-y-auto mb-6 pr-2 scrollbar-thin scrollbar-thumb-slate-200">
-          {jobs.length === 0 && (
-            <div className="text-center py-10">
-                <p className="text-slate-400 text-sm">Waiting for files...</p>
-            </div>
-          )}
+          {jobs.length === 0 && <div className="text-center py-10 text-slate-400 text-sm italic">Queue is empty. Select files to begin.</div>}
           {jobs.map((job, i) => (
             <div key={i} className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
               <div className="flex items-center gap-4 overflow-hidden">
-                <div className="relative">
-                    {job.status === "processing" && (
-                        <div className="absolute inset-0 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                    )}
-                    <div className={`p-2 rounded-lg ${job.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-slate-50 text-slate-400'}`}>
-                        {job.status === "completed" ? <CheckCircle2 className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
-                    </div>
+                <div className={`p-2 rounded-lg ${job.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-slate-50 text-slate-400'}`}>
+                  {job.status === "processing" ? <Loader2 className="w-5 h-5 animate-spin" /> : job.status === "completed" ? <CheckCircle2 className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
                 </div>
                 <div className="overflow-hidden">
                   <p className="text-xs font-bold text-slate-700 truncate">{job.file.name}</p>
-                  <p className="text-[10px] text-slate-400 font-medium">
-                    {(job.file.size / 1024 / 1024).toFixed(1)}MB • {job.status === 'processing' ? `${job.progress}%` : job.status}
+                  <p className="text-[10px] text-slate-400 font-medium lowercase">
+                    {(job.file.size / 1024 / 1024).toFixed(1)}mb • {job.status === 'processing' ? `compressing ${job.progress}%` : job.status}
                   </p>
                 </div>
               </div>
-              
               <div className="flex items-center gap-2 pl-4">
                 {job.outputUrl ? (
                   <a href={job.outputUrl} download={`discord_${job.file.name}`}>
@@ -180,11 +184,7 @@ export function CompressorTool({ format }: { format: string }) {
                     </Button>
                   </a>
                 ) : (
-                  <button 
-                    onClick={() => removeJob(i)} 
-                    disabled={job.status === "processing"}
-                    className="p-2 hover:bg-red-50 hover:text-red-500 text-slate-300 rounded-lg transition-colors disabled:opacity-0"
-                  >
+                  <button onClick={() => removeJob(i)} disabled={job.status === "processing"} className="p-2 hover:bg-red-50 hover:text-red-500 text-slate-300 rounded-lg transition-colors disabled:opacity-0">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 )}
@@ -193,16 +193,36 @@ export function CompressorTool({ format }: { format: string }) {
           ))}
         </div>
 
-        {/* ACTION BUTTON */}
-        <Button 
-          onClick={processQueue} 
-          disabled={!loaded || isProcessingQueue || jobs.filter(j => j.status === "pending").length === 0}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-14 text-lg font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-[0.98]"
-        >
-          {isProcessingQueue ? `Processing Queue...` : 
-           !loaded ? "Booting Engine..." : 
-           `Compress ${jobs.filter(j => j.status === 'pending').length} Files Now`}
-        </Button>
+        {/* ACTIONS */}
+        <div className="flex flex-col gap-3">
+          {pendingCount > 0 && (
+            <Button 
+              onClick={processQueue} 
+              disabled={!loaded || isProcessingQueue} 
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-14 text-lg font-bold rounded-xl shadow-lg transition-all active:scale-[0.98]"
+            >
+              {isProcessingQueue ? `Processing Queue...` : `Compress ${pendingCount} Files`}
+            </Button>
+          )}
+
+          {completedCount > 1 && !isProcessingQueue && (
+            <Button 
+              onClick={downloadAll} 
+              className="w-full bg-slate-900 hover:bg-black text-white h-14 text-lg font-bold rounded-xl shadow-lg flex gap-2 items-center justify-center transition-all"
+            >
+              <DownloadCloud className="w-6 h-6" /> Download All Files
+            </Button>
+          )}
+
+          {jobs.length > 0 && !isProcessingQueue && (
+            <button 
+              onClick={() => setJobs([])} 
+              className="text-xs text-slate-400 hover:text-slate-600 underline font-medium mt-2"
+            >
+              Clear all files and start over
+            </button>
+          )}
+        </div>
 
       </CardContent>
     </Card>
