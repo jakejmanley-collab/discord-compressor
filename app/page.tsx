@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { CompressorTool } from "@/components/CompressorTool";
-import { BannerRotator } from "@/components/BannerRotator";
+// We keep the import in case you want to add it back later, or you can remove it.
+import { BannerRotator } from "@/components/BannerRotator"; 
 import * as Icons from "lucide-react";
 
 export const metadata: Metadata = {
@@ -38,21 +39,16 @@ export default function Home() {
         </header>
 
         {/* THE TOOL */}
-        <section className="w-full flex justify-center mb-8">
+        <section className="w-full flex justify-center mb-12">
           <Suspense fallback={<div className="h-96 w-full max-w-xl bg-white rounded-3xl animate-pulse flex items-center justify-center border border-slate-200">Loading Compression Engine...</div>}>
             <CompressorTool format="VIDEO" />
           </Suspense>
         </section>
 
-        {/* AD SPOT 1 */}
-        <BannerRotator 
-          mode="affiliate"
-          affiliateLink="https://nordvpn.com" 
-          affiliateImage="https://placehold.co/600x100/4f46e5/ffffff?text=Protect+Your+Discord+Privacy+with+NordVPN"
-        />
+        {/* --- AD SPOT REMOVED FOR CLEAN LAUNCH --- */}
 
         {/* FORMAT BUTTONS SECTION */}
-        <section className="w-full max-w-4xl bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl my-12">
+        <section className="w-full max-w-4xl bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl mb-12">
           <div className="flex items-center justify-center gap-3 mb-8">
             <Icons.LayoutGrid className="text-indigo-600 w-8 h-8" />
             <h2 className="text-2xl font-black text-slate-900 uppercase">Tools by Format</h2>
@@ -95,18 +91,13 @@ export default function Home() {
           </div>
         </section>
 
-        {/* AD SPOT 2 */}
-        <BannerRotator 
-          mode="affiliate"
-          affiliateLink="https://www.cdkeys.com" 
-          affiliateImage="https://placehold.co/728x90/10b981/ffffff?text=Cheap+Steam+Keys+and+Windows+Licenses"
-        />
+        {/* --- AD SPOT 2 REMOVED --- */}
 
         {/* FOOTER */}
         <footer className="w-full mt-10 pt-10 border-t border-slate-200 text-center text-slate-400">
           <div className="flex justify-center gap-8 mb-6 font-bold uppercase tracking-widest text-[10px]">
             <Link href="/privacy" className="hover:text-indigo-600 transition-colors">Privacy Policy</Link>
-            <Link href="/" className="hover:text-indigo-600 transition-colors">Contact</Link>
+            <Link href="/contact" className="hover:text-indigo-600 transition-colors">Contact</Link>
             <Link href="/" className="hover:text-indigo-600 transition-colors">Home</Link>
           </div>
           <p className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase">
