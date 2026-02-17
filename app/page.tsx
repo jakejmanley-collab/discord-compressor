@@ -1,8 +1,9 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { CompressorTool } from "@/components/CompressorTool";
 import { ShieldCheck, Zap } from "lucide-react";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Discord Video Compressor | Free 8MB Tool",
@@ -23,6 +24,19 @@ export default function Home() {
     <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center py-10 font-sans">
       <div className="w-full flex flex-col items-center max-w-5xl px-4">
         
+        {/* HERO IMAGE */}
+        <div className="relative w-full max-w-lg mx-auto mb-8">
+          <Image 
+            src="/og-image.png" 
+            alt="Discord Video Compressor" 
+            width={1200} 
+            height={630} 
+            className="rounded-2xl shadow-2xl border border-slate-200"
+            priority
+          />
+        </div>
+
+        {/* HEADER */}
         <div className="text-center mb-10 space-y-4">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
             Discord Video Compressor
@@ -32,10 +46,12 @@ export default function Home() {
           </p>
         </div>
 
+        {/* TOOL */}
         <Suspense fallback={<div className="h-96 w-full max-w-xl bg-white rounded-xl shadow-xl animate-pulse" />}>
           <CompressorTool format="VIDEO" />
         </Suspense>
 
+        {/* LINKS GRID */}
         <section className="mt-20 w-full max-w-4xl">
           <h2 className="text-2xl font-bold text-center text-slate-900 mb-8">Supported Formats</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
