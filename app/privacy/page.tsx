@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { ShieldCheck, Lock, Eye, Server } from "lucide-react";
+import { ShieldCheck, Server } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Discord Video Compressor",
@@ -41,15 +41,15 @@ export default function PrivacyPage() {
           <h3 className="text-2xl font-bold text-slate-900 mt-8 mb-4">1. How Our Technology Works</h3>
           <p>
             We use <strong>WebAssembly (FFmpeg.wasm)</strong> to run professional video editing software directly inside your web browser. 
-            When you select a file, your browser (Chrome, Safari, Firefox) processes the data using your own computer's CPU power. 
+            When you select a file, your browser processes the data using your own computer's CPU power. 
             No bytes are ever sent to a remote server.
           </p>
 
           <h3 className="text-2xl font-bold text-slate-900 mt-8 mb-4">2. Data We Collect</h3>
           <p>We believe in data minimization. We only collect anonymous usage statistics to help us improve the tool:</p>
           <ul className="list-disc pl-6 space-y-2">
-            <li><strong>Analytics:</strong> We may use tools like Google Analytics to see which pages are popular (e.g., "MP4 vs MOV"). This data is anonymous.</li>
-            <li><strong>Errors:</strong> If the compression engine crashes, we may receive an anonymous error report to help us fix the bug.</li>
+            <li><strong>Analytics:</strong> We may use tools like Google Analytics to see which pages are popular. This data is anonymous.</li>
+            <li><strong>Errors:</strong> If the compression engine crashes, we may receive an anonymous error report.</li>
           </ul>
 
           <h3 className="text-2xl font-bold text-slate-900 mt-8 mb-4">3. Advertising</h3>
@@ -60,7 +60,7 @@ export default function PrivacyPage() {
 
           <h3 className="text-2xl font-bold text-slate-900 mt-8 mb-4">4. Your Consent</h3>
           <p>
-            By using our website, you consent to this Privacy Policy. If you do not agree with processing your files locally on your device, please close the browser tab.
+            By using our website, you consent to this Privacy Policy.
           </p>
         </div>
 
