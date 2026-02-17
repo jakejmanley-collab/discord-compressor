@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
-import { CompressorTool } from "@/components/CompressorTool";
-import { ShieldCheck, FileVideo, Zap, HelpCircle, Settings, CheckCircle } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CompressorTool } from "@/components/CompressorTool";
+import { ShieldCheck, Zap, HelpCircle, Settings } from "lucide-react";
 
 // --- 1. CONTENT DICTIONARY ---
 const contentMap: Record<string, { title: string; subtitle: string; p1: string; p2: string; p3: string; guide: string[]; faq: {q: string, a: string}[] }> = {
@@ -111,7 +112,7 @@ const contentMap: Record<string, { title: string; subtitle: string; p1: string; 
   }
 };
 
-// --- 2. STATIC PATH GENERATION (The SSG Magic) ---
+// --- 2. STATIC PATH GENERATION ---
 export async function generateStaticParams() {
   return Object.keys(contentMap).map((format) => ({
     format: format,
@@ -169,6 +170,18 @@ export default function FormatPage({ params }: Props) {
 
       <div className="w-full flex flex-col items-center max-w-5xl px-4">
         
+        {/* HERO IMAGE */}
+        <div className="relative w-full max-w-lg mx-auto mb-8">
+          <Image 
+            src="/og-image.png" 
+            alt={`Compress ${displayFormat} for Discord`}
+            width={1200} 
+            height={630} 
+            className="rounded-2xl shadow-2xl border border-slate-200"
+            priority
+          />
+        </div>
+
         {/* HEADER */}
         <div className="text-center mb-10 space-y-4">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
