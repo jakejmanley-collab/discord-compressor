@@ -50,7 +50,7 @@ export default function Home() {
           <BannerRotator 
             mode="affiliate"
             affiliateImage="/banners/nordvpn-728.png"
-            affiliateLink="YOUR_NORDVPN_LINK_HERE" 
+            affiliateLink="https://go.nordvpn.net/aff_c?offer_id=15&aff_id=141374" 
           />
         </section>
 
