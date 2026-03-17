@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CompressorTool } from "@/components/CompressorTool";
-import { ShieldCheck, Zap, HelpCircle, Settings, Globe } from "lucide-react";
+import { ShieldCheck, Zap, Globe } from "lucide-react";
 import { createClient } from '@supabase/supabase-js';
 
 // --- 1. SUPABASE CLIENT ---
@@ -18,17 +18,50 @@ const contentMap: Record<string, any> = {
     title: "Compress MP4 for Discord (8MB Fix)",
     subtitle: "The Ultimate Guide to Discord's File Size Limit",
     p1: "Discord's standard 8MB file upload limit is the most common frustration for gamers.",
-    content: "<p>Our tool solves this by intelligently adjusting the bitrate to hit exactly 7.9MB.</p>",
+    p2: "Our tool solves this by intelligently adjusting the bitrate to hit exactly 7.9MB.",
     faq: [{ q: "Why 8MB?", a: "Discord enforces this for free accounts." }]
-  ,
-  // ... (Keep your other local formats: mov, mkv, avi, webm, wmv here)
+  },
+  mov: {
+    title: "Compress MOV for Discord (iPhone Fix)",
+    subtitle: "Fixing Black Screens and Upload Failures",
+    p1: "If you record clips on an iPhone or Mac, you are likely using the MOV format with HEVC (H.265).",
+    p2: "Our tool converts your heavy Apple MOV file into a widely compatible H.264 MP4.",
+    faq: [{ q: "Why won't my iPhone video play?", a: "Discord has poor support for Apple's HEVC codec." }]
+  },
+  mkv: {
+    title: "Compress OBS MKV for Discord",
+    subtitle: "Share Gameplay Without Remuxing",
+    p1: "Streamers record in MKV to prevent file corruption, but Discord does not support MKV playback.",
+    p2: "Skip the extra steps. Our tool accepts raw OBS MKV files directly.",
+    faq: [{ q: "Why does Discord hate MKV?", a: "MKV is a container format that browsers don't natively support." }]
+  },
+  avi: {
+    title: "Convert AVI to Discord MP4",
+    subtitle: "Modernize Legacy Video Files",
+    p1: "AVI is an older format that creates massive uncompressed files.",
+    p2: "We modernize your video by converting the heavy AVI stream into a highly efficient H.264 MP4.",
+    faq: [{ q: "Why are AVI files so big?", a: "AVI often uses less efficient compression methods." }]
+  },
+  webm: {
+    title: "Optimize WebM for Discord",
+    subtitle: "Perfect Compression for Web Clips",
+    p1: "WebM is great for the web, but unoptimized exports can still exceed Discord's limits.",
+    p2: "Our tool ensures transparency and quality are preserved.",
+    faq: [{ q: "Is it fast?", a: "Yes, WebM processing is extremely fast in the browser." }]
+  },
+  wmv: {
+    title: "Compress WMV for Discord",
+    subtitle: "Fix Windows Media Playback",
+    p1: "Legacy Windows clips (WMV) often fail to embed on Discord mobile.",
+    p2: "Ensure your friends on iPhone and Android can actually watch your clips.",
+    faq: [{ q: "Is it free?", a: "Yes, completely free and unlimited." }]
+  }
 };
 
 // --- 3. DYNAMIC METADATA ---
 export async function generateMetadata({ params }: { params: { format: string } }): Promise<Metadata> {
   const formatKey = params.format.toLowerCase();
   
-  // Try to find in Supabase first
   const { data: article } = await supabase
     .from('seo_articles')
     .select('*')
@@ -40,8 +73,8 @@ export async function generateMetadata({ params }: { params: { format: string } 
   if (!content) return { title: "Not Found" };
 
   return {
-    title: content.title || content.h1,
-    description: content.description || `Compress ${formatKey} for Discord.`,
+    title: article?.title || content.title,
+    description: article?.description || `Compress ${formatKey} for Discord. ${content.p1.substring(0, 100)}...`,
   };
 }
 
@@ -49,7 +82,7 @@ export async function generateMetadata({ params }: { params: { format: string } 
 export default async function FormatPage({ params }: { params: { format: string } }) {
   const formatKey = params.format.toLowerCase();
 
-  // 1. Fetch from Supabase (The "Traffic Weapon" content)
+  // 1. Fetch from Supabase
   const { data: article } = await supabase
     .from('seo_articles')
     .select('*')
@@ -57,16 +90,14 @@ export default async function FormatPage({ params }: { params: { format: string 
     .eq('site_tag', 'discord')
     .single();
 
-  // 2. Fallback to local map if no DB article exists
+  // 2. Fallback to local map
   const localContent = contentMap[formatKey];
-  const isBaseFormat = !!localContent;
+  
+  // 404 if neither exists
+  if (!article && !localContent) return notFound();
 
-  if (!article && !isBaseFormat) return notFound();
-
-  // Unified data object
   const title = article?.h1 || localContent?.title;
   const subtitle = article?.description || localContent?.subtitle;
-  const bodyContent = article?.content || localContent?.p1; // Fallback logic
 
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col items-center py-10 font-sans">
@@ -88,10 +119,9 @@ export default async function FormatPage({ params }: { params: { format: string 
         </Suspense>
 
         {/* SEO CONTENT AREA */}
-        <div className="mt-20 grid md:grid-cols-12 gap-12 w-full">
+        <div className="mt-20 grid md:grid-cols-12 gap-12 w-full text-left">
           <article className="md:col-span-8">
             {article ? (
-              // This renders the "Blasted" content from your Admin Panel
               <div 
                 className="prose prose-slate lg:prose-lg max-w-none
                   prose-h2:text-2xl prose-h2:font-black prose-h2:uppercase prose-h2:italic
@@ -99,8 +129,7 @@ export default async function FormatPage({ params }: { params: { format: string 
                 dangerouslySetInnerHTML={{ __html: article.content }}
               />
             ) : (
-              // This renders your original hardcoded MP4/MOV guides
-              <div className="prose prose-slate lg:prose-lg">
+              <div className="prose prose-slate lg:prose-lg max-w-none">
                 <h2 className="text-3xl font-bold text-slate-900 mb-6">{localContent.subtitle}</h2>
                 <p className="text-slate-600 mb-6">{localContent.p1}</p>
                 <div className="bg-indigo-50 border-l-4 border-indigo-500 p-6 my-8 rounded-r-lg">
@@ -117,7 +146,7 @@ export default async function FormatPage({ params }: { params: { format: string 
                  <ShieldCheck className="w-5 h-5 text-green-600" /> Privacy Verified
                </h3>
                <p className="text-xs text-slate-500 font-medium">
-                 This tool uses <b>WebAssembly (WASM)</b> to process video locally. Your data never touches a server.
+                 This tool uses <b>WebAssembly (WASM)</b> to process video locally. Your files never leave your device.
                </p>
              </div>
 
@@ -126,9 +155,12 @@ export default async function FormatPage({ params }: { params: { format: string 
                  <Globe className="w-4 h-4" /> All Guides
                </h3>
                <div className="flex flex-wrap gap-2">
-                 {/* This links to your base formats */}
                  {Object.keys(contentMap).map(key => (
-                   <Link key={key} href={`/${key}`} className="text-[10px] font-bold bg-slate-800 hover:bg-indigo-600 px-3 py-1.5 rounded-lg transition-all uppercase tracking-widest">
+                   <Link 
+                     key={key} 
+                     href={`/${key}`} 
+                     className="text-[10px] font-bold bg-slate-800 hover:bg-indigo-600 px-3 py-1.5 rounded-lg transition-all uppercase tracking-widest"
+                   >
                      {key}
                    </Link>
                  ))}
