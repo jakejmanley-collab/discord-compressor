@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 
-// Revalidate the page every hour so new articles appear automatically
+// Revalidate the page every hour
 export const revalidate = 3600;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -11,16 +11,11 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default async function ArticlesPage() {
-  // Fetch the dynamically generated SEO articles specifically for Discord
+  // Removed last_updated to prevent schema cache errors
   const { data: articles, error } = await supabase
     .from('seo_articles')
-    .select('slug, title, description, last_updated')
-    .eq('site_tag', 'discord')
-    .order('last_updated', { ascending: false });
-
-  if (error) {
-    console.error('Supabase error fetching articles:', error);
-  }
+    .select('slug, title, description')
+    .eq('site_tag', 'discord');
 
   return (
     <div className="min-h-screen bg-slate-50 py-16 px-4 sm:px-6 lg:px-8 font-sans">
@@ -29,6 +24,15 @@ export default async function ArticlesPage() {
           Compression Guides & Articles
         </h1>
         
+        {/* Debug block to show exact Supabase errors on the screen */}
+        {error && (
+          <div className="mb-8 p-6 bg-red-50 border-2 border-red-200 rounded-2xl text-red-600 font-mono text-sm">
+            <strong>Database Error:</strong> {error.message}
+            <br/>
+            <em>Hint: If it says "permission denied" or returns 0 rows but no error, you need to enable an RLS "Select" policy in Supabase.</em>
+          </div>
+        )}
+
         <div className="grid gap-6">
           {articles && articles.length > 0 ? (
             articles.map((article) => (
@@ -41,20 +45,15 @@ export default async function ArticlesPage() {
                   {article.title || article.slug.replace(/-/g, ' ')}
                 </h2>
                 {article.description && (
-                  <p className="text-slate-600 mb-4">{article.description}</p>
-                )}
-                {article.last_updated && (
-                  <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                    Updated: {new Date(article.last_updated).toLocaleDateString()}
-                  </span>
+                  <p className="text-slate-600">{article.description}</p>
                 )}
               </Link>
             ))
-          ) : (
+          ) : !error ? (
             <div className="p-8 bg-white rounded-2xl border-2 border-slate-200 text-center">
-              <p className="text-slate-500 font-medium">No articles found.</p>
+              <p className="text-slate-500 font-medium">No articles found for the site_tag "discord". Check RLS policies.</p>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
